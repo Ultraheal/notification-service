@@ -1,6 +1,4 @@
-// import { version } from '../../package.json';
 import { Router } from 'express';
-import facets from './facets';
 import { apiStatus } from '../lib/util';
 import elasticSearch from 'elasticsearch';
 
@@ -9,10 +7,11 @@ export default ({ config, db }) => {
 	const elastic = new elasticSearch.Client({
 		host: 'http://localhost:9200'
 	});
+
 	const checkIndices = () => {
 		elastic.indices.exists({index: 'notifications'}, (err, res, status) => {
 			if (res) {
-				console.log('index already exists');
+				console.log('Index already exists');
 			} else {
 				elastic.indices.create( {index: 'notifications'}, (err, res, status) => {
 					console.log(err, res, status);
@@ -23,20 +22,20 @@ export default ({ config, db }) => {
 	}
 
 	const putMapping = () => {
-		console.log("Creating Mapping index");
+		console.log('Creating index mapping');
 		elastic.indices.putMapping({
 			index: 'notifications',
 			body: {
 				properties: {
-					userId: { type: 'text' },
-					orderId: { type: 'text' },
-					deleted: { type: 'text' },
-					readed: { type: 'text' },
-					id: { type: 'text' },
+					userId: { type: 'integer' },
+					orderId: { type: 'integer' },
+					deleted: { type: 'boolean' },
+					readed: { type: 'boolean' },
+					id: { type: 'integer' },
 					text: { type: 'text' },
 					type: { type: 'text' },
-					created_on: { type: 'date' },
-					updated_at: { type: 'date' } }
+					created_on: { type: 'text' },
+					updated_at: { type: 'text' } }
 			}
 		}, (err,resp, status) => {
 			if (err) {
@@ -47,62 +46,6 @@ export default ({ config, db }) => {
 			}
 		});
 	}
-	const run = async () => {
-		// Let's start by indexing some data
-		await elastic.index({
-			index: 'game-of-thrones',
-			// type: '_doc', // uncomment this line if you are using Elasticsearch ≤ 6
-			body: {
-				character: 'Ned Stark',
-				quote: 'Winter is coming.'
-			}
-		})
-
-		await elastic.index({
-			index: 'game-of-thrones',
-			// type: '_doc', // uncomment this line if you are using Elasticsearch ≤ 6
-			body: {
-				character: 'Daenerys Targaryen',
-				quote: 'I am the blood of the dragon.'
-			}
-		})
-
-		await elastic.index({
-			index: 'game-of-thrones',
-			// type: '_doc', // uncomment this line if you are using Elasticsearch ≤ 6
-			body: {
-				character: 'Tyrion Lannister',
-				quote: 'A mind needs books like a sword needs a whetstone.'
-			}
-		})
-
-		// here we are forcing an index refresh, otherwise we will not
-		// get any result in the consequent search
-		await elastic.indices.refresh({ index: 'game-of-thrones' })
-
-		// Let's search!
-		const { body } = await elastic.search({
-			index: 'game-of-thrones',
-			// type: '_doc', // uncomment this line if you are using Elasticsearch ≤ 6
-			body: {
-				query: {
-					match: { quote: 'winter' }
-				}
-			}
-		})
-
-		console.log(body)
-	}
-
-	run().catch(console.log)
-
-	// mount the facets resource
-	api.use('/facets', facets({ config, db }));
-
-	// perhaps expose some API metadata at the root
-	// api.get('/', (req, res) => {
-	// 	res.json({ version });
-	// });
 
 	api.get('/', (req, res) => {
 		elastic.ping({
@@ -119,6 +62,69 @@ export default ({ config, db }) => {
 		apiStatus(res, 'Api up', 200)
 	})
 
+	api.post('/create', (req, res) => {
+		if (!req.body.notifications && !req.body.notifications.length) {
+			return apiStatus(res, 'data is required', 500);
+		}
+		const createNotifications = async (notifications) => {
+			let result = []
+			await notifications.forEach(async elem => {
+				await elastic.index({
+					index: 'notifications',
+					id: elem.id,
+					body: elem
+				})
+				.then(res => {result.push(res)})
+				.catch(error => {
+					result.push(error)
+					console.error(error)
+				})
+			})
+			await elastic.indices.refresh({ index: 'notifications' })
+			return result
+		}
+		createNotifications(req.body.notifications)
+			.then((result) => {return apiStatus(res, result, 200)})
+	})
+
+	api.post('/get', (req, res) => {
+		if (!req.body.id) {
+			return apiStatus(res, 'id is required', 500);
+		}
+		elastic.search({
+			index: 'notifications',
+			body: {
+				from: req.body.from || 0,
+				size: req.body.size || 10,
+				query: {
+					term : { user_id: req.body.id }
+				}
+			}
+		})
+		.then((result) => {
+			console.log(result)
+			return apiStatus(res, result, 200)
+		})
+	})
+
+	api.post('/update', (req, res) => {
+		if (!req.body.id) {
+			return apiStatus(res, 'id is required', 500);
+		}
+		elastic.updateByQuery({
+			index: 'notifications',
+			body: {
+				query: {
+					term : { user_id: req.body.id }
+				},
+				script: { inline: "ctx._source.readed = true"}
+			}
+		})
+		.then((result) => {
+			console.log(result)
+			return apiStatus(res, result, 200)
+		})
+	})
 
 	return api;
 }

@@ -83,6 +83,24 @@ Endpoints
   "update_type": "readed" //type of update mark (readed or deleted)
 }
 ```
+Docker Support
+------
+```sh
+cd notification-service
+
+# Build your docker
+docker build -t notification-service .
+#            ^      ^                ^
+#          tag  tag name            Dockerfile location
+
+# run your docker
+docker run -p 8080:8080 notification-service
+#                 ^            ^
+#          bind the port    container tag
+#          to your host
+#          machine port   
+
+```
 License
 -------
 MIT

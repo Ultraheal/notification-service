@@ -1,7 +1,7 @@
 {
   "name": "notification-service",
   "version": "0.1.0",
-  "description": "Starter project for an ES6 RESTful Express API",
+  "description": "Node.js Express Notification service",
   "main": "dist",
   "scripts": {
     "dev": "nodemon -w src --exec \"babel-node src --presets es2015,stage-0\"",
@@ -26,9 +26,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/developit/express-es6-rest-api.git"
+    "url": "git+https://github.com/Ultraheal/notification-service.git"
   },
-  "author": "Jason Miller <jason@developit.ca>",
+  "author": "Vladislav Zhmykhov <v.zhmykhov@kt-team.de>",
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.13.3",
@@ -48,7 +48,7 @@
     "nodemon": "^1.9.2"
   },
   "bugs": {
-    "url": "https://github.com/developit/express-es6-rest-api/issues"
+    "url": "https://github.com/Ultraheal/notification-service/issues"
   },
-  "homepage": "https://github.com/developit/express-es6-rest-api#readme"
+  "homepage": "https://github.com/Ultraheal/notification-service#readme"
 }

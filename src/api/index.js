@@ -8,19 +8,6 @@ export default ({ config, db }) => {
 		host: 'http://localhost:9200'
 	});
 
-	const checkIndices = () => {
-		elastic.indices.exists({index: 'notifications'}, (err, res, status) => {
-			if (res) {
-				console.log('Index already exists');
-			} else {
-				elastic.indices.create( {index: 'notifications'}, (err, res, status) => {
-					console.log(err, res, status);
-					putMapping()
-				})
-			}
-		})
-	}
-
 	const putMapping = () => {
 		console.log('Creating index mapping');
 		elastic.indices.putMapping({
@@ -37,44 +24,58 @@ export default ({ config, db }) => {
 					created_on: { type: 'text' },
 					updated_at: { type: 'text' } }
 			}
-		}, (err,resp, status) => {
+		}, (err, resp, status) => {
 			if (err) {
 				console.error(err, status);
 			}
 			else {
-				console.log('Successfully Created Index', status, resp);
+				console.log('Successfully created mapping', status, resp);
 			}
 		});
 	}
 
+	const checkIndices = () => {
+		elastic.indices.exists({index: 'notifications'}, (err, res) => {
+			if (res) {
+				console.log('Index already exists');
+			} else {
+				elastic.indices.create( {index: 'notifications'}, (err, res, status) => {
+					console.log(err, res, status);
+					putMapping()
+				})
+			}
+		})
+	}
+
+	checkIndices()
+
 	api.get('/', (req, res) => {
 		elastic.ping({
 			requestTimeout: 1000
-		}, function (error) {
+		}, error => {
 			if (error) {
-				console.trace('elasticsearch cluster is down!');
+				apiStatus(res, 'Elastic cluster is down', 500)
+				console.error(error);
 			} else {
-				console.log('All is well');
+				apiStatus(res, 'Elastic cluster is ready', 200)
 			}
 		});
-		checkIndices()
-		putMapping()
-		apiStatus(res, 'Api up', 200)
 	})
 
 	api.post('/create', (req, res) => {
 		if (!req.body.notifications && !req.body.notifications.length) {
-			return apiStatus(res, 'data is required', 500);
+			apiStatus(res, 'data is required', 500);
 		}
 		const createNotifications = async (notifications) => {
 			let result = []
 			await notifications.forEach(async elem => {
+				elem.updated_at = new Date(Date.now()).toString()
 				await elastic.index({
 					index: 'notifications',
 					id: elem.id,
 					body: elem
 				})
-				.then(res => {result.push(res)})
+				.then(res => { result.push(res) })
 				.catch(error => {
 					result.push(error)
 					console.error(error)
@@ -84,12 +85,12 @@ export default ({ config, db }) => {
 			return result
 		}
 		createNotifications(req.body.notifications)
-			.then((result) => {return apiStatus(res, result, 200)})
+			.then(result => { apiStatus(res, result, 200) })
 	})
 
 	api.post('/get', (req, res) => {
-		if (!req.body.id) {
-			return apiStatus(res, 'id is required', 500);
+		if (!req.body.user_id) {
+			apiStatus(res, 'id is required', 500);
 		}
 		elastic.search({
 			index: 'notifications',
@@ -97,33 +98,45 @@ export default ({ config, db }) => {
 				from: req.body.from || 0,
 				size: req.body.size || 10,
 				query: {
-					term : { user_id: req.body.id }
+					term : { user_id: req.body.user_id }
 				}
 			}
 		})
 		.then((result) => {
-			console.log(result)
-			return apiStatus(res, result, 200)
+			apiStatus(res, result, 200)
 		})
 	})
 
 	api.post('/update', (req, res) => {
-		if (!req.body.id) {
-			return apiStatus(res, 'id is required', 500);
+		if (!req.body.user_id) {
+			apiStatus(res, 'id is required', 500);
 		}
+		const currentDate = new Date(Date.now()).toString()
 		elastic.updateByQuery({
 			index: 'notifications',
 			body: {
 				query: {
-					term : { user_id: req.body.id }
+					bool: {
+						must: [
+							{
+								term: {
+									user_id: req.body.user_id
+								}
+							},
+							{
+								terms: {
+									id: req.body.notification_ids
+								}
+							}
+						]
+					}
 				},
-				script: { inline: "ctx._source.readed = true"}
+				script: {
+					inline: `ctx._source.${req.body.update_type} = true; ctx._source.updated_at = '${currentDate}';`
+				}
 			}
 		})
-		.then((result) => {
-			console.log(result)
-			return apiStatus(res, result, 200)
-		})
+		.then(result => { apiStatus(res, result, 200) })
 	})
 
 	return api;

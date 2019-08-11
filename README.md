@@ -29,7 +29,7 @@ Configuration
 
 # Change hosts for running Websocket server
 
-# You can use enviroment variables for run aplication server,
+# You can use environment variables for running aplication server,
 # like PORT=8080 npm start, or change port at config file
 ```
 Websocket support

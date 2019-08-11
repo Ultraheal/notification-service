@@ -27,7 +27,7 @@ Configuration
 
 # Point your own host and port for ElasticSearch cluster
 
-# Change hosts for running Websocket server
+# Change port for running Websocket server
 
 # You can use environment variables for running aplication server,
 # like PORT=8080 npm start, or change port at config file

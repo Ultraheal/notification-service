@@ -1,4 +1,9 @@
+import elasticSearch from 'elasticsearch';
+import config from './config.json';
+
 export default callback => {
-	// connect to a database if needed, then pass it to `callback`:
-	callback();
+	const elastic = new elasticSearch.Client({
+		host: `http://${config.elasticSearch.host}:${config.elasticSearch.port}`
+	});
+	callback(elastic);
 }

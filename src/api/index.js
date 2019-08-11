@@ -1,16 +1,12 @@
 import { Router } from 'express';
 import { apiStatus } from '../lib/util';
-import elasticSearch from 'elasticsearch';
 
 export default ({ config, db }) => {
-	let api = Router();
-	const elastic = new elasticSearch.Client({
-		host: 'http://localhost:9200'
-	});
+	const api = Router();
 
 	const putMapping = () => {
 		console.log('Creating index mapping');
-		elastic.indices.putMapping({
+		db.indices.putMapping({
 			index: 'notifications',
 			body: {
 				properties: {
@@ -35,11 +31,11 @@ export default ({ config, db }) => {
 	}
 
 	const checkIndices = () => {
-		elastic.indices.exists({index: 'notifications'}, (err, res) => {
+		db.indices.exists({index: 'notifications'}, (err, res) => {
 			if (res) {
 				console.log('Index already exists');
 			} else {
-				elastic.indices.create( {index: 'notifications'}, (err, res, status) => {
+				db.indices.create( {index: 'notifications'}, (err, res, status) => {
 					console.log(err, res, status);
 					putMapping()
 				})
@@ -50,7 +46,7 @@ export default ({ config, db }) => {
 	checkIndices()
 
 	api.get('/', (req, res) => {
-		elastic.ping({
+		db.ping({
 			requestTimeout: 1000
 		}, error => {
 			if (error) {
@@ -70,7 +66,7 @@ export default ({ config, db }) => {
 			let result = []
 			await notifications.forEach(async elem => {
 				elem.updated_at = new Date(Date.now()).toString()
-				await elastic.index({
+				await db.index({
 					index: 'notifications',
 					id: elem.id,
 					body: elem
@@ -81,7 +77,7 @@ export default ({ config, db }) => {
 					console.error(error)
 				})
 			})
-			await elastic.indices.refresh({ index: 'notifications' })
+			await db.indices.refresh({ index: 'notifications' })
 			return result
 		}
 		createNotifications(req.body.notifications)
@@ -90,9 +86,9 @@ export default ({ config, db }) => {
 
 	api.post('/get', (req, res) => {
 		if (!req.body.user_id) {
-			apiStatus(res, 'id is required', 500);
+			apiStatus(res, 'user_id is required', 500);
 		}
-		elastic.search({
+		db.search({
 			index: 'notifications',
 			body: {
 				from: req.body.from || 0,
@@ -112,7 +108,7 @@ export default ({ config, db }) => {
 			apiStatus(res, 'id is required', 500);
 		}
 		const currentDate = new Date(Date.now()).toString()
-		elastic.updateByQuery({
+		db.updateByQuery({
 			index: 'notifications',
 			body: {
 				query: {

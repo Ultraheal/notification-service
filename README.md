@@ -20,13 +20,25 @@ PORT=8080 npm run dev or yarn dev
 # Start production server:
 PORT=8080 npm start or yarn start
 ```
-Connect to ES cluster
+Configuration
 ---------------
 ```sh
-# at src/api/index.js
-const elastic = new elasticSearch.Client({
-	host: 'http://localhost:9200'
-});
+# at src/config.json
+# Point your own host and port for ElasticSearch
+# Change hosts for running Websocket server
+# You can use enviroment variables for run aplication server,
+ like PORT=8080 npm start, or change port at config file
+```
+Websocket support
+---------------
+```sh
+# This project support getting data from ElasticSearch by Websocket protocol.
+
+# You can find a simple example of client application for Vue.js
+at src/example/client.js folder
+
+# In this example, you must install socket.io-client dependency for your Vue project:
+npm i socket.io-client
 ```
 Endpoints
 ---------------

@@ -1,5 +1,10 @@
 {
 	"port": 8080,
+	"websocket_port": 3001,
+	"elasticSearch": {
+		"host": "localhost",
+		"port": 9200
+	},
 	"bodyLimit": "100kb",
 	"corsHeaders": ["Link"]
 }

@@ -24,10 +24,13 @@ Configuration
 ---------------
 ```sh
 # at src/config.json
-# Point your own host and port for ElasticSearch
+
+# Point your own host and port for ElasticSearch cluster
+
 # Change hosts for running Websocket server
+
 # You can use enviroment variables for run aplication server,
- like PORT=8080 npm start, or change port at config file
+# like PORT=8080 npm start, or change port at config file
 ```
 Websocket support
 ---------------
@@ -35,7 +38,7 @@ Websocket support
 # This project support getting data from ElasticSearch by Websocket protocol.
 
 # You can find a simple example of client application for Vue.js
-at src/example/client.js folder
+# at src/example/client.js folder
 
 # In this example, you must install socket.io-client dependency for your Vue project:
 npm i socket.io-client

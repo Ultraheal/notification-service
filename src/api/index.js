@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { apiStatus } from '../lib/util';
+import mapping from '../resources/mapping';
 
 export default ({ config, db }) => {
 	const api = Router();
@@ -9,16 +10,7 @@ export default ({ config, db }) => {
 		db.indices.putMapping({
 			index: 'notifications',
 			body: {
-				properties: {
-					userId: { type: 'integer' },
-					orderId: { type: 'integer' },
-					deleted: { type: 'boolean' },
-					readed: { type: 'boolean' },
-					id: { type: 'integer' },
-					text: { type: 'text' },
-					type: { type: 'text' },
-					created_on: { type: 'text' },
-					updated_at: { type: 'text' } }
+				properties: mapping
 			}
 		}, (err, resp, status) => {
 			if (err) {

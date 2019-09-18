@@ -14,20 +14,15 @@ services:
       - '9300:9300'
 
   mysql:
-    image: mysql:8.0
+    image: mysql:5.7
     restart: always
     environment:
       MYSQL_DATABASE: 'db'
-      MYSQL_USER: 'user'
+      MYSQL_USER: 'root'
       MYSQL_PASSWORD: 'password'
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
       - '3306:3306'
-    expose:
-      - '3306'
-    volumes:
-      - ./docker/mysql/config/my.cnf:/etc/alternatives/my.cnf
-      - mysql:/var/lib/mysql
 volumes:
   esdata:
   mysql:

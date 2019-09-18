@@ -28,7 +28,7 @@ app.use(bodyParser.json({
 // connect to db
 initializeDb( db => {
 	// api router
-	app.use('/api', api({ config, db }));
+	app.use('/api/notifications', api({ config, db }));
 
 	// websocket server
 	app.use(websocketServer({ config, db }));

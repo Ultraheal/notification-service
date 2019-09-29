@@ -11,8 +11,6 @@ import websocketServer from './api/websocket-server'
 let app = express();
 app.server = http.createServer(app);
 
-app.use('/', require('express-healthcheck')())
-
 // logger
 app.use(morgan('dev'));
 
@@ -28,7 +26,7 @@ app.use(bodyParser.json({
 // connect to db
 initializeDb( db => {
 	// api router
-	app.use('/api/notifications', api({ config, db }));
+	app.use('/api', api({ config, db }));
 
 	// websocket server
 	app.use(websocketServer({ config, db }));

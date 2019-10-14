@@ -2,7 +2,7 @@ import { Router } from 'express';
 const express = require('express');
 const app = express();
 
-export default ({ config, db }) => {
+export default ({ config, elastic }) => {
     let websocketApi = Router();
     const server = app.listen(config.websocket_port, () => {
         console.log(`Websocket server running on port ${config.websocket_port}`);
@@ -15,7 +15,7 @@ export default ({ config, db }) => {
                 console.error('user_id is required');
                 socket.send('user_id is required')
             } else {
-                db.search({
+                elastic.search({
                     index: 'notifications',
                     body: {
                         from: searchParams.from || 0,

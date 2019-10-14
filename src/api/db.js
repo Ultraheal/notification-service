@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import {apiStatus} from "../lib/util";
+import { apiStatus } from '../lib/util';
 
-export default ({ config, db }) => {
+export default ({ config, elastic }) => {
     const dbApi = Router();
 
     dbApi.get('/health', (req, res) => {
-        db.ping({
+        elastic.ping({
             requestTimeout: 1000
         }, error => {
             if (error) {

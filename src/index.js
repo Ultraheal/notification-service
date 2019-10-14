@@ -8,6 +8,7 @@ import api from './api';
 import config from './config.json';
 import websocketServer from './api/websocket-server'
 
+
 let app = express();
 app.server = http.createServer(app);
 
@@ -24,12 +25,12 @@ app.use(bodyParser.json({
 }));
 
 // connect to db
-initializeDb( db => {
+initializeDb( elastic => {
 	// api router
-	app.use('/api', api({ config, db }));
+	app.use('/api', api({ config, elastic }));
 
 	// websocket server
-	app.use(websocketServer({ config, db }));
+	app.use(websocketServer({ config, elastic }));
 
 	app.server.listen(process.env.PORT || config.port, () => {
 		console.log(`Api running on port ${app.server.address().port}`);

@@ -74,7 +74,7 @@ export default ({ config, elastic }) => {
               return Object.values(item)
             })
             const notificationKeys = Object.keys(notifications[0]).join(',')
-            mysqlConnection.query(`INSERT INTO notifications (${notificationKeys}) VALUES ?`, [notificationValues], (err, res) => {
+            await mysqlConnection.query(`INSERT INTO notifications (${notificationKeys}) VALUES ?`, [notificationValues], (err, res) => {
                 if (err) {
                   const error = `mysql error: ${err.sqlMessage}`
                   console.error(error)
@@ -94,7 +94,7 @@ export default ({ config, elastic }) => {
                         console.error(error)
                     })
             })
-            elastic.indices.refresh({ index: 'notifications' })
+            await elastic.indices.refresh({ index: 'notifications' })
             return result
         }
         createNotifications(notificationsArray)

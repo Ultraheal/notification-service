@@ -81,9 +81,9 @@ export default ({ config, elastic }) => {
                   result.push(error)
                 }
             })
-            await notifications.forEach(async elem => {
+            await notifications.forEach(elem => {
                 elem.updated_at = new Date(Date.now()).toString()
-                await elastic.index({
+                elastic.index({
                     index: 'notifications',
                     id: elem.id,
                     body: elem
